@@ -1,13 +1,32 @@
+import java.io.FileInputStream
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
 }
 
+// Read properties from local.properties
+val localProperties = Properties()
+val localPropertiesFile = rootProject.file("local.properties")
+if (localPropertiesFile.exists()) {
+    localProperties.load(FileInputStream(localPropertiesFile))
+}
+
 android {
     namespace = "com.example.sexyappinfo"
     compileSdk {
         version = release(36)
+    }
+
+    signingConfigs {
+        create("release") {
+            keyAlias = localProperties.getProperty("MYAPP_RELEASE_KEY_ALIAS")
+            keyPassword = localProperties.getProperty("MYAPP_RELEASE_KEY_PASSWORD")
+            storeFile = file(localProperties.getProperty("MYAPP_RELEASE_STORE_FILE"))
+            storePassword = localProperties.getProperty("MYAPP_RELEASE_STORE_PASSWORD")
+        }
     }
 
     defaultConfig {
@@ -27,6 +46,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            signingConfig = signingConfigs.getByName("release")
         }
     }
     compileOptions {
